@@ -20,6 +20,12 @@ from middleware import (
 
 # Import routes
 from routes import auth, products, warehouses
+from routes.receipts import router as receipts_router
+from routes.deliveries import router as deliveries_router
+from routes.operations import router as operations_router
+from routes.stock import router as stock_router
+from routes.dashboard import router as dashboard_router
+
 
 # ── Logging setup ─────────────────────────────────────────────────────────────
 logging.basicConfig(
@@ -81,6 +87,12 @@ API_PREFIX = "/api/v1"
 app.include_router(auth.router,       prefix=API_PREFIX)
 app.include_router(products.router,   prefix=API_PREFIX)
 app.include_router(warehouses.router, prefix=API_PREFIX)
+app.include_router(receipts_router,   prefix=API_PREFIX)
+app.include_router(deliveries_router, prefix=API_PREFIX)
+app.include_router(operations_router, prefix=API_PREFIX)
+app.include_router(stock_router,      prefix=API_PREFIX)
+app.include_router(dashboard_router,  prefix=API_PREFIX)
+
 
 
 # ── Health check ──────────────────────────────────────────────────────────────
