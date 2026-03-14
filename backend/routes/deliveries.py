@@ -36,7 +36,7 @@ async def validate(
 async def list_all(
     db: Annotated[AsyncSession, Depends(get_db)],
     status: Optional[str] = Query(None, pattern="^(draft|packed|validated)$"),
-    limit: int = Query(20, ge=1, le=100),
+    limit: int = Query(20, ge=1, le=500),
     offset: int = Query(0, ge=0),
 ):
     return await list_deliveries(db, status, limit, offset)

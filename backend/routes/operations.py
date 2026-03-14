@@ -27,7 +27,7 @@ async def create_tf(
 @router.get("/transfers", response_model=list[TransferOut], dependencies=[AnyDep])
 async def list_tf(
     db: Annotated[AsyncSession, Depends(get_db)],
-    limit: int = Query(20, ge=1, le=100),
+    limit: int = Query(20, ge=1, le=500),
     offset: int = Query(0, ge=0),
 ):
     return await list_transfers(db, limit, offset)
@@ -48,7 +48,7 @@ async def create_adj(
 @router.get("/adjustments", response_model=list[AdjustmentOut], dependencies=[AnyDep])
 async def list_adj(
     db: Annotated[AsyncSession, Depends(get_db)],
-    limit: int = Query(20, ge=1, le=100),
+    limit: int = Query(20, ge=1, le=500),
     offset: int = Query(0, ge=0),
 ):
     return await list_adjustments(db, limit, offset)

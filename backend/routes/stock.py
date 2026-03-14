@@ -19,7 +19,7 @@ async def get_stock(
     db: Annotated[AsyncSession, Depends(get_db)],
     warehouse_id: Optional[uuid.UUID] = Query(None),
     product_id: Optional[uuid.UUID] = Query(None),
-    limit: int = Query(20, ge=1, le=100),
+    limit: int = Query(20, ge=1, le=500),
     offset: int = Query(0, ge=0),
 ):
     query = select(Stock)
@@ -27,7 +27,7 @@ async def get_stock(
         query = query.where(Stock.warehouse_id == warehouse_id)
     if product_id:
         query = query.where(Stock.product_id == product_id)
-    query = query.limit(min(limit, 100)).offset(offset)
+    query = query.limit(min(limit, 500)).offset(offset)
     result = await db.execute(query)
     return result.scalars().all()
 
@@ -37,7 +37,7 @@ async def get_ledger(
     db: Annotated[AsyncSession, Depends(get_db)],
     product_id: Optional[uuid.UUID] = Query(None),
     warehouse_id: Optional[uuid.UUID] = Query(None),
-    limit: int = Query(50, ge=1, le=100),
+    limit: int = Query(50, ge=1, le=500),
     offset: int = Query(0, ge=0),
 ):
     query = select(StockLedger)
@@ -45,6 +45,6 @@ async def get_ledger(
         query = query.where(StockLedger.product_id == product_id)
     if warehouse_id:
         query = query.where(StockLedger.warehouse_id == warehouse_id)
-    query = query.order_by(StockLedger.created_at.desc()).limit(min(limit, 100)).offset(offset)
+    query = query.order_by(StockLedger.created_at.desc()).limit(min(limit, 500)).offset(offset)
     result = await db.execute(query)
     return result.scalars().all()

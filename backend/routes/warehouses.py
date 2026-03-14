@@ -23,7 +23,7 @@ async def create_wh(data: WarehouseCreate, db: Annotated[AsyncSession, Depends(g
 @router.get("/warehouses", response_model=list[WarehouseOut], dependencies=[AnyDep])
 async def list_wh(
     db: Annotated[AsyncSession, Depends(get_db)],
-    limit: int = Query(20, ge=1, le=100),
+    limit: int = Query(20, ge=1, le=500),
     offset: int = Query(0, ge=0),
 ):
     return await list_warehouses(db, limit, offset)
@@ -43,7 +43,7 @@ async def create_loc(data: LocationCreate, db: Annotated[AsyncSession, Depends(g
 async def list_locs(
     db: Annotated[AsyncSession, Depends(get_db)],
     warehouse_id: Optional[uuid.UUID] = Query(None),
-    limit: int = Query(20, ge=1, le=100),
+    limit: int = Query(20, ge=1, le=500),
     offset: int = Query(0, ge=0),
 ):
     return await list_locations(db, warehouse_id, limit, offset)

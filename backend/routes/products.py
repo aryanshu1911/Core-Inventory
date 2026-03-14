@@ -26,7 +26,7 @@ async def create_cat(data: CategoryCreate, db: Annotated[AsyncSession, Depends(g
 @router.get("/categories", response_model=list[CategoryOut], dependencies=[AnyDep])
 async def get_cats(
     db: Annotated[AsyncSession, Depends(get_db)],
-    limit: int = Query(20, ge=1, le=100),
+    limit: int = Query(20, ge=1, le=500),
     offset: int = Query(0, ge=0),
 ):
     return await list_categories(db, limit, offset)
@@ -44,7 +44,7 @@ async def get_prods(
     db: Annotated[AsyncSession, Depends(get_db)],
     search: Optional[str] = Query(None),
     category_id: Optional[uuid.UUID] = Query(None),
-    limit: int = Query(20, ge=1, le=100),
+    limit: int = Query(20, ge=1, le=500),
     offset: int = Query(0, ge=0),
 ):
     return await list_products(db, search, category_id, limit, offset)
