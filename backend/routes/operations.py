@@ -1,4 +1,4 @@
-from typing import Annotated
+from typing import Annotated, Optional
 from fastapi import APIRouter, Depends, Query, BackgroundTasks
 from sqlalchemy.ext.asyncio import AsyncSession
 from database import get_db
@@ -27,10 +27,11 @@ async def create_tf(
 @router.get("/transfers", response_model=list[TransferOut], dependencies=[AnyDep])
 async def list_tf(
     db: Annotated[AsyncSession, Depends(get_db)],
+    status: Optional[str] = Query(None, pattern="^(pending|completed|cancelled)$"),
     limit: int = Query(20, ge=1, le=500),
     offset: int = Query(0, ge=0),
 ):
-    return await list_transfers(db, limit, offset)
+    return await list_transfers(db, status, limit, offset)
 
 
 # ── Adjustments ───────────────────────────────────────────────────────────────

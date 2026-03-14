@@ -36,6 +36,10 @@ async def get_stock(
         )
     elif stock_status == "out":
         query = query.where(Stock.quantity == 0)
+    elif stock_status == "in":
+        query = query.join(Product, Product.id == Stock.product_id).where(
+            Stock.quantity > Product.reorder_level
+        )
 
     query = query.limit(min(limit, 500)).offset(offset)
     result = await db.execute(query)

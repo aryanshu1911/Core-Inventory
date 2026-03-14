@@ -51,10 +51,12 @@ async def create_transfer(
     return transfer
 
 
-async def list_transfers(db: AsyncSession, limit: int = 20, offset: int = 0) -> List[Transfer]:
-    result = await db.execute(
-        select(Transfer).order_by(Transfer.created_at.desc()).limit(min(limit, 100)).offset(offset)
-    )
+async def list_transfers(db: AsyncSession, status: Optional[str] = None, limit: int = 20, offset: int = 0) -> List[Transfer]:
+    query = select(Transfer)
+    if status:
+        query = query.where(Transfer.status == status)
+    query = query.order_by(Transfer.created_at.desc()).limit(min(limit, 100)).offset(offset)
+    result = await db.execute(query)
     return result.scalars().all()
 
 

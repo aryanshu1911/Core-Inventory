@@ -66,12 +66,21 @@ export default function Dashboard() {
   ] : []
 
   const onPieClick = (data, index) => {
-    const statusMap = { 'Low Stock': 'low', 'Out of Stock': 'out' }
+    const statusMap = { 'Low Stock': 'low', 'Out of Stock': 'out', 'In Stock': 'in' }
     const status = statusMap[data.name]
     if (status) {
       navigate(`/stock?status=${status}`)
     } else {
       navigate('/stock')
+    }
+  }
+
+  const onBarClick = (data) => {
+    if (data && data.activePayload && data.activePayload.length) {
+      const name = data.activePayload[0].payload.name;
+      if (name === 'Receipts') navigate('/receipts')
+      if (name === 'Deliveries') navigate('/deliveries')
+      if (name === 'Transfers') navigate('/transfers')
     }
   }
 
@@ -88,9 +97,9 @@ export default function Dashboard() {
               <StatsCard label="Total Stock Units"  value={data?.total_stock_value}   icon={BoxesIcon}        color="cyan"   to="/stock" />
               <StatsCard label="Low Stock Items"    value={data?.low_stock_count}     icon={AlertTriangle}    color="yellow" to="/stock?status=low" />
               <StatsCard label="Out of Stock"       value={data?.out_of_stock_count}  icon={XCircle}          color="red"    to="/stock?status=out" />
-              <StatsCard label="Pending Receipts"   value={data?.pending_receipts}    icon={ArrowDownCircle}  color="green"  to="/receipts" />
-              <StatsCard label="Pending Deliveries" value={data?.pending_deliveries}  icon={ArrowUpCircle}    color="purple" to="/deliveries" />
-              <StatsCard label="Pending Transfers"  value={data?.pending_transfers}   icon={ArrowLeftRight}   color="blue"   to="/transfers" />
+              <StatsCard label="Pending Receipts"   value={data?.pending_receipts}    icon={ArrowDownCircle}  color="green"  to="/receipts?status=draft" />
+              <StatsCard label="Pending Deliveries" value={data?.pending_deliveries}  icon={ArrowUpCircle}    color="purple" to="/deliveries?status=draft" />
+              <StatsCard label="Pending Transfers"  value={data?.pending_transfers}   icon={ArrowLeftRight}   color="blue"   to="/transfers?status=pending" />
               <StatsCard label="Active Alerts"      value={data?.active_alerts}       icon={Bell}             color="red"    to="/ledger" />
             </div>
 
@@ -98,7 +107,7 @@ export default function Dashboard() {
               <div className="chart-container">
                 <div className="section-title">Pending Operations</div>
                 <ResponsiveContainer width="100%" height={240}>
-                  <BarChart data={barData} barCategoryGap="40%">
+                  <BarChart data={barData} barCategoryGap="40%" onClick={onBarClick} style={{ cursor: 'pointer' }}>
                     <defs>
                       <linearGradient id="blueGrad" x1="0" y1="0" x2="0" y2="1">
                         <stop offset="0%" stopColor="#4f8ef7" />

@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
+import { useLocation } from 'react-router-dom'
 import Navbar from '../components/Navbar'
 import DataTable from '../components/DataTable'
 import Modal from '../components/Modal'
@@ -15,14 +16,19 @@ export default function Transfers() {
   const [form, setForm] = useState({ product_id: '', from_warehouse_id: '', to_warehouse_id: '', quantity: 1 })
   const [saving, setSaving] = useState(false)
 
-  const fetch = () => {
+  const { search } = useLocation()
+  const statusFilter = useMemo(() => new URLSearchParams(search).get('status'), [search])
+
+  const fetch = useCallback(() => {
     setLoading(true)
-    Promise.all([transfersApi.list({ limit: 50 }), productsApi.list({ limit: 200 }), warehousesApi.list({ limit: 100 })])
+    const params = { limit: 50 };
+    if (statusFilter) params.status = statusFilter;
+    Promise.all([transfersApi.list(params), productsApi.list({ limit: 200 }), warehousesApi.list({ limit: 100 })])
       .then(([t, p, w]) => { setData(t.data); setProducts(p.data); setWarehouses(w.data) })
       .catch(e => toast.error(e.message))
       .finally(() => setLoading(false))
-  }
-  useEffect(fetch, [])
+  }, [statusFilter])
+  useEffect(fetch, [fetch])
 
   const save = async (e) => {
     e.preventDefault(); setSaving(true)

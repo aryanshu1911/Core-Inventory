@@ -1,4 +1,5 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
+import { useLocation } from 'react-router-dom'
 import Navbar from '../components/Navbar'
 import DataTable from '../components/DataTable'
 import Modal from '../components/Modal'
@@ -15,13 +16,18 @@ export default function Deliveries() {
   const [form, setForm] = useState({ customer: '', items: [{ product_id: '', warehouse_id: '', quantity: 1 }] })
   const [saving, setSaving] = useState(false)
 
+  const { search } = useLocation()
+  const statusFilter = useMemo(() => new URLSearchParams(search).get('status'), [search])
+
   const fetch = useCallback(() => {
     setLoading(true)
-    Promise.all([deliveriesApi.list({ limit: 50 }), productsApi.list({ limit: 200 }), warehousesApi.list({ limit: 100 })])
+    const params = { limit: 50 };
+    if (statusFilter) params.status = statusFilter;
+    Promise.all([deliveriesApi.list(params), productsApi.list({ limit: 200 }), warehousesApi.list({ limit: 100 })])
       .then(([d, p, w]) => { setData(d.data); setProducts(p.data); setWarehouses(w.data) })
       .catch(e => toast.error(e.message))
       .finally(() => setLoading(false))
-  }, [])
+  }, [statusFilter])
   useEffect(fetch, [fetch])
 
   const addLine = () => setForm({ ...form, items: [...form.items, { product_id: '', warehouse_id: '', quantity: 1 }] })
