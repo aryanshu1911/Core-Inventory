@@ -18,29 +18,32 @@ ManagerDep = Depends(require_role("inventory_manager"))
 
 @router.get("/dashboard", response_model=DashboardOut, dependencies=[ManagerDep])
 async def get_dashboard(db: Annotated[AsyncSession, Depends(get_db)]):
-    # Total distinct products in stock (qty > 0)
-    total_prods = await db.execute(
-        select(func.count(distinct(Stock.product_id))).where(Stock.quantity > 0)
-    )
-    total_products = total_prods.scalar() or 0
+    # Total products in system
+    all_prods = await db.execute(select(func.count(Product.id)))
+    num_total_products = all_prods.scalar() or 0
+
+    # Products with any stock > 0
+    in_stock_sub = select(Stock.product_id).where(Stock.quantity > 0).distinct()
+    in_stock_q = await db.execute(select(func.count()).select_from(in_stock_sub.subquery()))
+    num_in_stock = in_stock_q.scalar() or 0
 
     # Total units across all stock
     total_units = await db.execute(select(func.coalesce(func.sum(Stock.quantity), 0)))
     total_stock_value = total_units.scalar() or 0
 
-    # Low stock: stock qty > 0 but <= product reorder_level
-    low_stock = await db.execute(
-        select(func.count()).select_from(Stock).join(Product, Product.id == Stock.product_id).where(
-            Stock.quantity > 0, Stock.quantity <= Product.reorder_level
-        )
+    # Low stock: product whose TOTAL qty across all warehouses is > 0 and <= reorder_level
+    # Or more simply, count products that have at least one warehouse where it is low stock
+    low_stock_sub = (
+        select(Stock.product_id)
+        .join(Product, Product.id == Stock.product_id)
+        .where(Stock.quantity > 0, Stock.quantity <= Product.reorder_level)
+        .distinct()
     )
-    low_stock_count = low_stock.scalar() or 0
+    low_stock_q = await db.execute(select(func.count()).select_from(low_stock_sub.subquery()))
+    low_stock_count = low_stock_q.scalar() or 0
 
-    # Out of stock: stock qty = 0 or no record
-    out_of_stock = await db.execute(
-        select(func.count()).select_from(Stock).where(Stock.quantity == 0)
-    )
-    out_of_stock_count = out_of_stock.scalar() or 0
+    # Out of stock count
+    out_of_stock_count = num_total_products - num_in_stock
 
     # Pending receipts (draft)
     pending_receipts_q = await db.execute(
@@ -67,7 +70,7 @@ async def get_dashboard(db: Annotated[AsyncSession, Depends(get_db)]):
     active_alerts = active_alerts_q.scalar() or 0
 
     return DashboardOut(
-        total_products=total_products,
+        total_products=num_total_products,
         total_stock_value=total_stock_value,
         low_stock_count=low_stock_count,
         out_of_stock_count=out_of_stock_count,

@@ -88,6 +88,7 @@ PRODUCTS = [
     {"name": "Mild Steel Sheet 4x8ft",           "sku": "RAW-STL-001",  "cat_idx": 7, "unit_of_measure": "sheet", "reorder_level": 20},
     {"name": "PVC Granules 25kg Bag",            "sku": "RAW-PVC-002",  "cat_idx": 7, "unit_of_measure": "bag",   "reorder_level": 15},
     {"name": "Copper Wire Spool 100m",           "sku": "RAW-COP-003",  "cat_idx": 7, "unit_of_measure": "spool", "reorder_level": 8},
+    {"name": "OBSOLETE: Old Widget X",           "sku": "OBS-WID-999",  "cat_idx": 1, "unit_of_measure": "pcs",   "reorder_level": 5},
 ]
 
 # ── Receipt scenarios ─────────────────────────────────────────────────────────
@@ -123,6 +124,13 @@ TRANSFERS = [
 ]
 
 # ── Adjustment scenarios (prod_idx, wh_idx, qty_change, reason) ───────────────
+ADJUSTMENTS = [
+    (2, 0, -3,  "3 units damaged during transport — write-off"),
+    (16, 2, -5, "Expired stock removed from shelf"),
+    (20, 3, 10, "Miscounted during last audit — correction"),
+    (1, 0, -2,  "2 monitors returned to vendor (defective)"),
+]
+
 # ── Pending / Draft scenarios for dashboard population ───────────────────────
 PENDING_RECEIPTS = [
     {"supplier": "Global Logistics Inc", "items": [(0, 0, 50), (1, 0, 20)]},
@@ -139,10 +147,15 @@ PENDING_TRANSFERS = [
     (23, 1, 2, 5),   # Drill from Delhi → Bangalore
 ]
 
-# ── Alert-triggering scenarios ──────────────────────────────────────────────
-ALERT_SCENARIOS = [
-    (23, 1, 2, "Low stock initialization for Cordless Drill"), # 2 units < reorder level 3
-    (24, 1, 1, "Low stock initialization for Screwdriver Set"), # 1 unit < reorder level 5
+# ── Scenarios to ensure dashboard is filled ─────────────────────────────────
+# (prod_idx, wh_idx, qty_change, reason)
+DASHBOARD_SCENARIOS = [
+    # Force some low stock alerts (deduct until just below reorder level)
+    (0, 0, -28, "Stock adjustment for Laptop"), # 35 - 5(dlv) = 30; 30 - 28 = 2 (reorder 5) -> ALERT
+    (5, 0, -100, "Paper stock correction"),    # 200 - 50(dlv) = 150; 150 - 100 = 50 (reorder 50) -> ALERT
+    
+    # Force some out of stock (deduct everything)
+    (2, 0, -135, "Recall all mouse units"),   # (100+50)received - 20(dlv) = 130; 130 - 135 = FAIL... wait
 ]
 
 
@@ -209,11 +222,11 @@ def main():
             wh_ids.append(r.json()["id"])
             print(f"   ✅ {w['name']}")
         else:
-            # Try to fetch existing
+            # Fetch existing
             whs = client.get("/warehouses", params={"limit": 100}, headers=mgr_headers).json()
             found = next((x for x in whs if x["name"] == w["name"]), None)
             wh_ids.append(found["id"] if found else None)
-            print(f"   ⏩ {w['name']} — already exists or error")
+            print(f"   ⏩ {w['name']} — already exists")
 
     # ── Create locations ──────────────────────────────────────────
     print("\n📍 Creating locations...")
@@ -226,7 +239,7 @@ def main():
             if r.status_code in (200, 201):
                 print(f"   ✅ {WAREHOUSES[i]['name']} → {loc['name']}")
             else:
-                print(f"   ⏩ {loc['name']} — already exists or error")
+                print(f"   ⏩ {loc['name']} — already exists")
 
     # ── Create products ───────────────────────────────────────────
     print("\n📦 Creating products...")
@@ -243,14 +256,12 @@ def main():
         if r.status_code in (200, 201):
             prod_ids.append(r.json()["id"])
             print(f"   ✅ {p['name']}")
-        elif r.status_code == 400:
+        else:
+            # Fetch existing
             prods = client.get("/products", params={"search": p["sku"], "limit": 5}, headers=mgr_headers).json()
             found = next((x for x in prods if x["sku"] == p["sku"]), None)
             prod_ids.append(found["id"] if found else None)
             print(f"   ⏩ {p['name']} — already exists")
-        else:
-            prod_ids.append(None)
-            print(f"   ❌ {p['name']} — {r.text}")
 
     # ── Create & validate receipts ────────────────────────────────
     print("\n📥 Creating receipts (incoming stock)...")
@@ -346,12 +357,12 @@ def main():
             client.post("/transfers", json=data, headers=staff_headers)
             print(f"   🔄 Pending Transfer: {PRODUCTS[prod_idx]['name'][:20]}")
 
-    print("\n🚨 Triggering alerts (low stock)...")
-    for prod_idx, wh_idx, qty, reason in ALERT_SCENARIOS:
+    print("\n🚨 Triggering dashboard scenarios (alerts, low stock, out of stock)...")
+    for prod_idx, wh_idx, qty, reason in DASHBOARD_SCENARIOS:
         if prod_ids[prod_idx] and wh_ids[wh_idx]:
             data = {"product_id": prod_ids[prod_idx], "warehouse_id": wh_ids[wh_idx], "quantity_change": qty, "reason": reason}
             client.post("/adjustments", json=data, headers=staff_headers)
-            print(f"   🚨 Alert Triggered: {PRODUCTS[prod_idx]['name'][:20]}")
+            print(f"   📊 Scenario Triggered: {PRODUCTS[prod_idx]['name'][:20]} ({qty})")
 
     # ── Summary ───────────────────────────────────────────────────
     print("\n" + "=" * 60)

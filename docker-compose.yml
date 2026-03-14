@@ -63,6 +63,8 @@ services:
       RATE_LIMIT:                     ${RATE_LIMIT:-100/minute}
     ports:
       - "8000:8000"
+    volumes:
+      - ./backend:/app
     networks:
       - ci_network
 
