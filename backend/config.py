@@ -1,7 +1,10 @@
-from pydantic import BaseSettings
+from pydantic_settings import BaseSettings
+from pydantic import ConfigDict
 
 
 class Settings(BaseSettings):
+    model_config = ConfigDict(env_file=".env", env_file_encoding="utf-8")
+
     DATABASE_URL: str
     REDIS_URL: str = "redis://localhost:6379"
     JWT_SECRET_KEY: str
@@ -14,10 +17,6 @@ class Settings(BaseSettings):
     RATE_LIMIT_LOGIN: str = "5/minute"
     RATE_LIMIT_RESET: str = "3/minute"
     ENVIRONMENT: str = "development"
-
-    class Config:
-        env_file = ".env"
-        env_file_encoding = "utf-8"
 
 
 settings = Settings()

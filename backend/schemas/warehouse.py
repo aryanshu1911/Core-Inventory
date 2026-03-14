@@ -1,6 +1,6 @@
 import uuid
 from typing import Optional
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 
 
 class WarehouseCreate(BaseModel):
@@ -9,12 +9,11 @@ class WarehouseCreate(BaseModel):
 
 
 class WarehouseOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     id: uuid.UUID
     name: str
-    address: Optional[str]
-
-    class Config:
-        orm_mode = True
+    address: Optional[str] = None
 
 
 class LocationCreate(BaseModel):
@@ -24,10 +23,9 @@ class LocationCreate(BaseModel):
 
 
 class LocationOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     id: uuid.UUID
     warehouse_id: uuid.UUID
     name: str
-    rack_code: Optional[str]
-
-    class Config:
-        orm_mode = True
+    rack_code: Optional[str] = None

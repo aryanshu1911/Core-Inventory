@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime
 from sqlalchemy import String, DateTime, ForeignKey, Enum
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.dialects.postgresql import UUID
 from database import Base
 
@@ -23,6 +23,8 @@ class Receipt(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=datetime.utcnow)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=datetime.utcnow, onupdate=datetime.utcnow)
 
+    items = relationship("ReceiptItem", back_populates="receipt", lazy="selectin")
+
 
 class ReceiptItem(Base):
     __tablename__ = "receipt_items"
@@ -38,3 +40,5 @@ class ReceiptItem(Base):
         UUID(as_uuid=True), ForeignKey("warehouses.id", ondelete="CASCADE"), nullable=False
     )
     quantity: Mapped[int] = mapped_column(nullable=False)
+
+    receipt = relationship("Receipt", back_populates="items")

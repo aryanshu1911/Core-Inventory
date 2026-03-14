@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime
 from typing import Optional
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 
 
 class TransferCreate(BaseModel):
@@ -12,17 +12,16 @@ class TransferCreate(BaseModel):
 
 
 class TransferOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     id: uuid.UUID
     product_id: uuid.UUID
     from_warehouse_id: uuid.UUID
     to_warehouse_id: uuid.UUID
     quantity: int
     status: str
-    created_by: Optional[uuid.UUID]
+    created_by: Optional[uuid.UUID] = None
     created_at: datetime
-
-    class Config:
-        orm_mode = True
 
 
 class AdjustmentCreate(BaseModel):
@@ -33,44 +32,43 @@ class AdjustmentCreate(BaseModel):
 
 
 class AdjustmentOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     id: uuid.UUID
     product_id: uuid.UUID
     warehouse_id: uuid.UUID
     quantity_change: int
     reason: str
-    created_by: Optional[uuid.UUID]
+    created_by: Optional[uuid.UUID] = None
     created_at: datetime
-
-    class Config:
-        orm_mode = True
 
 
 class StockOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     id: uuid.UUID
     product_id: uuid.UUID
     warehouse_id: uuid.UUID
-    location_id: Optional[uuid.UUID]
+    location_id: Optional[uuid.UUID] = None
     quantity: int
-
-    class Config:
-        orm_mode = True
 
 
 class LedgerOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     id: uuid.UUID
     product_id: uuid.UUID
     warehouse_id: uuid.UUID
     change_type: str
     quantity_change: int
-    reference_id: Optional[uuid.UUID]
-    user_id: Optional[uuid.UUID]
+    reference_id: Optional[uuid.UUID] = None
+    user_id: Optional[uuid.UUID] = None
     created_at: datetime
-
-    class Config:
-        orm_mode = True
 
 
 class AlertOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     id: uuid.UUID
     product_id: uuid.UUID
     warehouse_id: uuid.UUID
@@ -78,9 +76,6 @@ class AlertOut(BaseModel):
     reorder_level: int
     is_resolved: bool
     created_at: datetime
-
-    class Config:
-        orm_mode = True
 
 
 class DashboardOut(BaseModel):

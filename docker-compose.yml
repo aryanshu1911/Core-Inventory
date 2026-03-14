@@ -62,7 +62,7 @@ services:
       SMTP_PASSWORD:                  ${SMTP_PASSWORD:-}
       RATE_LIMIT:                     ${RATE_LIMIT:-100/minute}
     ports:
-      - "8008:8000"
+      - "8000:8000"
     networks:
       - ci_network
 

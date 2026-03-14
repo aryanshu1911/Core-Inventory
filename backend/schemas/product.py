@@ -1,6 +1,6 @@
 import uuid
 from typing import Optional
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 
 
 class CategoryCreate(BaseModel):
@@ -9,12 +9,11 @@ class CategoryCreate(BaseModel):
 
 
 class CategoryOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     id: uuid.UUID
     name: str
-    description: Optional[str]
-
-    class Config:
-        orm_mode = True
+    description: Optional[str] = None
 
 
 class ProductCreate(BaseModel):
@@ -33,12 +32,11 @@ class ProductUpdate(BaseModel):
 
 
 class ProductOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     id: uuid.UUID
     name: str
     sku: str
-    category_id: Optional[uuid.UUID]
+    category_id: Optional[uuid.UUID] = None
     unit_of_measure: str
     reorder_level: int
-
-    class Config:
-        orm_mode = True

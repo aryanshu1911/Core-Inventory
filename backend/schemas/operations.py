@@ -1,7 +1,7 @@
 import uuid
-from typing import List
+from typing import List, Optional
 from datetime import datetime
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 
 
 class ReceiptItemCreate(BaseModel):
@@ -16,25 +16,23 @@ class ReceiptCreate(BaseModel):
 
 
 class ReceiptItemOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     id: uuid.UUID
     product_id: uuid.UUID
     warehouse_id: uuid.UUID
     quantity: int
 
-    class Config:
-        orm_mode = True
-
 
 class ReceiptOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     id: uuid.UUID
     supplier: str
     status: str
-    created_by: uuid.UUID
+    created_by: Optional[uuid.UUID] = None
     created_at: datetime
     items: List[ReceiptItemOut] = []
-
-    class Config:
-        orm_mode = True
 
 
 class DeliveryItemCreate(BaseModel):
@@ -49,22 +47,20 @@ class DeliveryCreate(BaseModel):
 
 
 class DeliveryItemOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     id: uuid.UUID
     product_id: uuid.UUID
     warehouse_id: uuid.UUID
     quantity: int
 
-    class Config:
-        orm_mode = True
-
 
 class DeliveryOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     id: uuid.UUID
     customer: str
     status: str
-    created_by: uuid.UUID
+    created_by: Optional[uuid.UUID] = None
     created_at: datetime
     items: List[DeliveryItemOut] = []
-
-    class Config:
-        orm_mode = True
