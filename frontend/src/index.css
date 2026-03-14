@@ -126,6 +126,7 @@ ul, ol { list-style: none; }
   font-weight: 800;
   background: var(--gradient-blue);
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
   letter-spacing: -0.5px;
 }
@@ -579,6 +580,7 @@ select.form-control option { background: var(--surface-2); }
   font-weight: 800;
   background: var(--gradient-blue);
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
   letter-spacing: -1px;
   margin-bottom: 4px;
