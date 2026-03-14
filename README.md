@@ -1,65 +1,46 @@
-# CoreInventory
+# CoreInventory 🚀
 
 **Enterprise Inventory Management Platform**  
-A production-ready, full-stack inventory management system built with FastAPI, PostgreSQL, and React.
+A production-ready, full-stack inventory management system built to handle everything from stock tracking to multi-warehouse transfers.
 
 ---
 
-## Tech Stack
+## 🛠️ Tech Stack
 
 | Layer | Technology |
 |---|---|
-| Backend | Python 3.11 · FastAPI · SQLAlchemy (async) · Alembic |
-| Database | PostgreSQL 15 |
-| Caching | Redis (optional, for dashboard TTL) |
-| Authentication | JWT (HS256) · bcrypt |
-| Frontend | React 18 · Vite · Axios · Recharts |
-| Testing | pytest · pytest-asyncio · httpx · SQLite in-memory |
+| **Frontend** | React 18 · Vite · HTML5/Vanilla CSS · Recharts (Dashboards) |
+| **Backend**  | Python 3.11 · FastAPI · Pydantic v2 |
+| **Database** | PostgreSQL 15 · SQLAlchemy (async) · Alembic (Migrations) |
+| **Caching**  | Redis |
+| **Auth**     | JWT (HS256) · bcrypt · SMTP OTP Verification |
+| **Deploy**   | Docker Compose (Nginx for Frontend, Uvicorn for Backend) |
 
 ---
 
-## Project Structure
+## 🌟 Features
 
-```
-CoreInventory/
-├── backend/
-│   ├── alembic/               # Database migrations
-│   ├── auth/                  # JWT, hashing, RBAC dependencies
-│   ├── middleware/            # Logging + global error handler
-│   ├── models/                # SQLAlchemy ORM models (12 tables)
-│   ├── routes/                # FastAPI routers (all /api/v1/*)
-│   ├── schemas/               # Pydantic v2 request/response schemas
-│   ├── services/              # Business logic layer
-│   ├── tests/                 # pytest test suite (33 test cases)
-│   ├── utils/                 # OTP helpers, pagination
-│   ├── config.py              # Pydantic Settings from .env
-│   ├── database.py            # Async SQLAlchemy engine
-│   ├── main.py                # FastAPI app entry point
-│   ├── schema.sql             # Raw PostgreSQL DDL (reference)
-│   ├── requirements.txt
-│   └── pytest.ini
-├── frontend/
-│   ├── src/
-│   │   ├── api/               # Axios client (all endpoints)
-│   │   ├── components/        # Sidebar, Navbar, DataTable, Modal, StatsCard
-│   │   ├── context/           # AuthContext, NotificationContext
-│   │   └── pages/             # 12 pages (Login → Dashboard → Operations)
-│   ├── index.html
-│   ├── package.json
-│   └── vite.config.js
-└── .env.example
-```
+* **Role-Based Access Control (RBAC)**: Distinct permissions for `Manager` and `Staff`.
+* **Real-time Dashboard**: Track total stock, pending receipts/deliveries/transfers, out-of-stock items, and recent ledger history intuitively.
+* **OTP Authentication**: Secure login flow with email OTP verification.
+* **Warehouse Management**: Track inventory accurately across multiple physical storage locations.
+* **Core Operations**: 
+  - **Receipts**: Inbound logistics (adding stock).
+  - **Deliveries**: Outbound logistics (deducting stock).
+  - **Transfers**: Moving items between warehouses.
+  - **Adjustments**: Manual stock overrides for audits / physical counts.
+* **Immutable Ledger**: A permanent history of every single unit added, removed, or moved.
+* **Automated Alerts**: Real-time notifications for Low Stock and Out of Stock triggers based on reorder thresholds.
 
 ---
 
-## Quick Start (Local — without Docker)
+## 🐳 Quick Start (Docker — Recommended)
+
+The application is dockerized and ready to spin up with a single command. 
 
 ### Prerequisites
-- Python 3.11+
-- Node.js 18+
-- PostgreSQL 15+
-
----
+* Docker Desktop installed and running
+* Git
 
 ### 1. Clone & Configure
 
@@ -69,245 +50,116 @@ cd CoreInventory
 cp .env.example .env
 ```
 
-Edit `.env` with your real values:
-
-```
-DATABASE_URL=postgresql+asyncpg://youruser:yourpass@localhost:5432/coreinventory
-JWT_SECRET_KEY=change-this-to-a-strong-random-secret
-```
-
----
-
-### 2. Set Up the Database
-
-```sql
--- Run in psql as a superuser:
-CREATE USER coreinventory WITH PASSWORD 'yourpass';
-CREATE DATABASE coreinventory OWNER coreinventory;
+Edit your `.env` file to provide real SMTP credentials for the OTP to work:
+```env
+SMTP_USER=your-email@gmail.com
+SMTP_PASSWORD=your-app-password
 ```
 
----
+### 2. Start Services
 
-### 3. Backend Setup
+Use Docker Compose to build and start the entire stack (PostgreSQL, Redis, Backend API, Frontend Nginx):
 
 ```bash
-cd backend
+docker compose up --build -d
+```
 
+### 3. Seed Database with Sample Data
+
+Once the containers are running and healthy, you can populate the database with sample products, warehouses, and users:
+
+```bash
+docker compose exec backend python seed_data.py
+```
+
+### 4. Access the Application
+
+* **Frontend Web App**: [http://localhost:3000](http://localhost:3000)
+* **Backend API Swagger Docs**: [http://localhost:8000/docs](http://localhost:8000/docs)
+
+**Sample Credentials** (Added by the seed script):
+* **Manager**: `amal@company.com` / Password: `Admin@123`
+* **Staff**: `priya@company.com` / Password: `Staff@123`
+
+*(Note: In development, the OTP defaults to `000000` if the SMTP is not configured or fails to send, but in production, real OTPs are required).*
+
+### Stopping Services
+```bash
+docker compose down
+```
+
+---
+
+## 🏗️ Project Structure
+
+```text
+CoreInventory/
+├── backend/
+│   ├── alembic/               # Database migrations
+│   ├── auth/                  # JWT logic, OTP service, RBAC
+│   ├── models/                # SQLAlchemy ORM models
+│   ├── routes/                # FastAPI endpoint routers (/api/v1/*)
+│   ├── schemas/               # Pydantic v2 validation models
+│   ├── services/              # Core business logic (ops, stock updates)
+│   ├── database.py            # Async PostgreSQL connection logic
+│   ├── seed_data.py           # Populates the DB with dummy data
+│   └── main.py                # App entry point
+├── frontend/
+│   ├── src/
+│   │   ├── api/               # Axios API client functions
+│   │   ├── components/        # Reusable UI components
+│   │   ├── pages/             # Route-level React views
+│   │   └── App.jsx            # React Router & Layout
+│   ├── index.css              # Custom styling / Dark theme implementation
+│   └── vite.config.js
+├── docker-compose.yml         # Container orchestration
+└── .env                       # Environment configs
+```
+
+---
+
+## 💻 Local Development (Without Docker)
+
+If you prefer to run the application components individually:
+
+### 1. Database & Redis
+Ensure PostgreSQL and Redis are running on your local machine.
+
+### 2. Backend
+```bash
+cd backend
 python -m venv venv
-venv\Scripts\activate        # Windows
-# source venv/bin/activate   # macOS / Linux
+venv\Scripts\activate      # Windows
+# source venv/bin/activate # macOS / Linux
 
 pip install -r requirements.txt
 alembic upgrade head
 uvicorn main:app --reload --port 8000
 ```
 
----
-
-### 4. Frontend Setup
-
+### 3. Frontend
 ```bash
 cd frontend
 npm install
 npm run dev
 ```
 
-The web dashboard will be at **http://localhost:3000**
-
 ---
 
-## 🐳 Quick Start (Docker — Recommended)
+## 🔐 Roles & Operations Matrix
 
-### Prerequisites
-- Docker Desktop installed and running
-
-### 1. Clone & Configure
-
-```bash
-git clone https://github.com/DeathRay00/CoreInventory-.git
-cd CoreInventory
-cp .env.example .env
-```
-
-Edit `.env` — at minimum set:
-
-```env
-POSTGRES_PASSWORD=strongpassword
-JWT_SECRET_KEY=change-this-to-a-strong-random-secret
-```
-
-### 2. Start All Services
-
-```bash
-docker compose up --build -d
-```
-
-This starts 4 containers automatically:
-
-| Container | URL |
-|---|---|
-| Frontend (React + Nginx) | http://localhost:3000 |
-| Backend (FastAPI) | http://localhost:8000 |
-| Swagger UI | http://localhost:8000/docs |
-| PostgreSQL | localhost:5432 |
-| Redis | localhost:6379 |
-
-### 3. Start with pgAdmin (optional)
-
-```bash
-docker compose --profile dev up --build -d
-```
-
-pgAdmin will be at **http://localhost:5050** (login: `admin@coreinventory.local` / `admin`)
-
-### 4. Stop All Services
-
-```bash
-docker compose down          # stop, keep DB data
-docker compose down -v       # stop and wipe DB volume
-```
-
-### Docker Files
-
-| File | Purpose |
-|---|---|
-| `backend/Dockerfile` | Multi-stage Python build (gcc → slim runtime, runs as non-root) |
-| `frontend/Dockerfile` | Multi-stage Node build (Vite build → Nginx alpine) |
-| `frontend/nginx.conf` | SPA routing fallback + `/api/` proxy to backend |
-| `docker-compose.yml` | Orchestrates all 5 services with healthchecks and named volumes |
-
-
-
----
-
-## API Endpoints
-
-All routes are versioned under `/api/v1/`.
-
-| Method | Endpoint | Role | Description |
-|---|---|---|---|
-| POST | `/auth/register` | Public | Create account |
-| POST | `/auth/login` | Public | Get JWT token |
-| GET | `/auth/me` | Any | Current user info |
-| GET/POST | `/products` | Any/Manager | List / create products |
-| PUT/DELETE | `/products/{id}` | Manager | Update / delete product |
-| GET/POST | `/categories` | Any/Manager | List / create categories |
-| GET/POST | `/warehouses` | Any/Manager | List / create warehouses |
-| GET/POST | `/locations` | Any/Manager | List / create locations |
-| GET/POST | `/receipts` | Any/Staff | List / create receipts |
-| POST | `/receipts/{id}/validate` | Staff | Validate → adds stock |
-| GET/POST | `/deliveries` | Any/Staff | List / create deliveries |
-| POST | `/deliveries/{id}/validate` | Staff | Validate → deducts stock |
-| GET/POST | `/transfers` | Any/Staff | List / execute transfers |
-| GET/POST | `/adjustments` | Any/Staff | List / apply adjustments |
-| GET | `/stock` | Any | Current stock levels |
-| GET | `/ledger` | Manager | Immutable movement history |
-| GET | `/dashboard` | Manager | Aggregated KPI metrics |
-| GET | `/health` | Public | Service health check |
-
-### Swagger UI (interactive docs)
-```
-http://localhost:8000/docs
-```
-
-### ReDoc
-```
-http://localhost:8000/redoc
-```
-
----
-
-## Standard Error Response
-
-All errors return a consistent JSON envelope:
-
-```json
-{
-  "error": {
-    "code": "RESOURCE_NOT_FOUND",
-    "message": "Product not found",
-    "details": null
-  }
-}
-```
-
-| Code | HTTP Status |
-|---|---|
-| `INVALID_CREDENTIALS` | 401 |
-| `UNAUTHORIZED` | 401 |
-| `FORBIDDEN` | 403 |
-| `RESOURCE_NOT_FOUND` | 404 |
-| `VALIDATION_ERROR` | 400 / 422 |
-| `INTERNAL_SERVER_ERROR` | 500 |
-
----
-
-## Roles & Permissions
-
-| Permission | Inventory Manager | Warehouse Staff |
+| Operation | Inventory Manager | Warehouse Staff |
 |---|:---:|:---:|
-| View dashboard | ✅ | ❌ |
-| Manage products & categories | ✅ | ❌ |
-| Manage warehouses & locations | ✅ | ❌ |
-| View stock ledger | ✅ | ❌ |
-| Create & validate receipts | ✅ | ✅ |
-| Create & validate deliveries | ✅ | ✅ |
-| Execute transfers | ✅ | ✅ |
-| Apply adjustments | ✅ | ✅ |
-| View stock levels | ✅ | ✅ |
+| View Dashboard & KPIs | ✅ | ❌ |
+| Add/Edit Products | ✅ | ❌ |
+| Setup Warehouses | ✅ | ❌ |
+| View Ledger History | ✅ | ❌ |
+| Create & Validate Receipts | ✅ | ✅ |
+| Create & Validate Deliveries | ✅ | ✅ |
+| Execute Stock Transfers | ✅ | ✅ |
+| View Stock Levels | ✅ | ✅ |
 
 ---
 
-## Running Tests
-
-The test suite uses an **in-memory SQLite database** — no PostgreSQL required.
-
-```bash
-cd backend
-pip install -r requirements.txt     # if not already installed
-
-pytest -v
-```
-
-Expected output:
-
-```
-tests/test_auth.py         ·········   9 passed
-tests/test_products.py     ·············  13 passed
-tests/test_inventory.py    ···········  11 passed
-=================== 33 passed in X.XXs ===================
-```
-
----
-
-## Environment Variables Reference
-
-| Variable | Description | Default |
-|---|---|---|
-| `DATABASE_URL` | PostgreSQL async connection string | — |
-| `JWT_SECRET_KEY` | Secret key for signing JWTs | — |
-| `JWT_ALGORITHM` | JWT algorithm | `HS256` |
-| `ACCESS_TOKEN_EXPIRE_MINUTES` | Token lifetime in minutes | `60` |
-| `SMTP_HOST` | SMTP server for OTP emails | `smtp.gmail.com` |
-| `SMTP_PORT` | SMTP port | `587` |
-| `SMTP_USER` | SMTP login email | — |
-| `SMTP_PASSWORD` | SMTP login password | — |
-| `REDIS_URL` | Redis connection string | `redis://localhost:6379` |
-| `RATE_LIMIT` | slowapi request limit | `100/minute` |
-
----
-
-## Key Design Decisions
-
-- **Async throughout** — SQLAlchemy `asyncpg` + `httpx` for zero-blocking I/O
-- **Modular architecture** — routes → services → models with no cross-layer leakage
-- **No negative stock** — `stock_service.upsert_stock()` raises 400 before any DB write
-- **Immutable ledger** — `stock_ledger` rows are never updated or deleted
-- **Background alerts** — FastAPI `BackgroundTasks` so alert creation never blocks the HTTP response
-- **RBAC via dependency injection** — `require_role()` factory used as a FastAPI `Depends` parameter
-
----
-
-## License
-
-MIT — see [LICENSE](LICENSE)
+## 📝 License
+MIT License
